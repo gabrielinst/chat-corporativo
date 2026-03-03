@@ -2,7 +2,8 @@ import sys
 import os
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QHBoxLayout,
                              QWidget, QTextEdit, QLineEdit, QPushButton, QFileDialog,
-                             QMessageBox, QLabel, QFrame, QGraphicsOpacityEffect)
+                             QMessageBox, QLabel, QFrame, QGraphicsOpacityEffect,
+                             QInputDialog)
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QSize
 from PyQt6.QtGui import QPixmap, QFont, QIcon, QPalette, QColor
 
@@ -185,12 +186,22 @@ class ChatWindow(QMainWindow):
         title_label.setObjectName("headerTitle")
         title_layout.addWidget(title_label)
 
-        subtitle = QLabel("Assistente IA • Conectado ao Servidor")
-        subtitle.setObjectName("headerSubtitle")
-        title_layout.addWidget(subtitle)
+        self.subtitle = QLabel(f"Servidor: {api_client.get_server_url()}")
+        self.subtitle.setObjectName("headerSubtitle")
+        title_layout.addWidget(self.subtitle)
 
         header_layout.addLayout(title_layout)
         header_layout.addStretch()
+
+        # Botão de configuração do servidor
+        btn_config = QPushButton("⚙️")
+        btn_config.setStyleSheet(
+            f"font-size: 18px; background: transparent; border: none; color: {COLORS['text_secondary']};"
+        )
+        btn_config.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_config.setToolTip("Configurar IP do Servidor")
+        btn_config.clicked.connect(self.configure_server)
+        header_layout.addWidget(btn_config)
 
         # Status indicator
         status_dot = QLabel("🟢")
@@ -270,6 +281,26 @@ class ChatWindow(QMainWindow):
 
         # Mensagem de boas-vindas
         self.show_welcome()
+
+    def configure_server(self):
+        """Abre diálogo para o usuário configurar o IP do servidor."""
+        current = api_client.get_server_url()
+        new_url, ok = QInputDialog.getText(
+            self,
+            "Configurar Servidor",
+            "Digite o endereço do servidor (ex: http://192.168.1.100:8000):",
+            QLineEdit.EchoMode.Normal,
+            current
+        )
+        if ok and new_url.strip():
+            url = new_url.strip()
+            if not url.startswith("http"):
+                url = "http://" + url
+            if ":8000" not in url and ":80" not in url:
+                url = url.rstrip("/") + ":8000"
+            api_client.save_server_url(url)
+            self.subtitle.setText(f"Servidor: {url}")
+            self.append_system_message(f"Servidor atualizado para: <b>{url}</b>")
 
     def resizeEvent(self, event):
         """Redimensiona a marca d'água ao redimensionar a janela."""
