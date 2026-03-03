@@ -4,7 +4,7 @@ import json
 
 # ---- Configuração do IP do Servidor ----
 CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
-DEFAULT_SERVER = "http://127.0.0.1:8000"
+DEFAULT_SERVER = "http://192.168.1.140:8000"
 
 def load_server_url():
     """Carrega a URL do servidor salva no config.json."""
